@@ -1,0 +1,10 @@
+Corrida: corrida_20261008_173757
+Iteraciones simuladas: 82 de 1000
+Tablero: range_x = [-10, 10], range_y = [-10, 10]
+Objetivo del leader: (0.0, 0.0)
+Posición inicial del leader: (4.1026, -5.6553)
+Modo de posiciones de los drones: manual
+Radio de colisión: 0.05
+Leader alcanzó el objetivo: sí, iteración 81
+Registros de contacto: 0
+Resultado: DEFENSA FALLIDA / SIN RESULTADO
