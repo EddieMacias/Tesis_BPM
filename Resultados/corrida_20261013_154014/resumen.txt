@@ -1,0 +1,13 @@
+Corrida: corrida_20261013_154014
+Iteraciones simuladas: 295 de 1000
+Tablero interno: range_x = [-10, 10], range_y = [-10, 10]
+Perímetro exterior: perimetro_x = [-20, 20], perimetro_y = [-20, 20]
+Modo de inicio del leader: perimetro
+Drones limitados al tablero interno: True
+Objetivo del leader: (0.0, 0.0)
+Posición inicial del leader: (-13.3264, -20.0000)
+Modo de posiciones de los drones: manual
+Radio de colisión: 0.05
+Leader alcanzó el objetivo: sí, iteración 294
+Registros de contacto: 0
+Resultado: DEFENSA FALLIDA / SIN RESULTADO

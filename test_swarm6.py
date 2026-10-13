@@ -41,10 +41,30 @@ def mover_hacia_objetivo(pos, objetivo, paso):
 # PARÁMETROS DE TABLERO
 # ============================================================
 num_boids       = 8
-range_x         = [-10, 10]
+range_x         = [-10, 10]     # tablero interno: zona de los drones defensores
 range_y         = [-10, 10]
 obstacle_radius = 0.3
 num_iterations  = 1000
+
+# ============================================================
+# PERÍMETRO EXTERIOR (zona de aparición del dron hostil)
+# El leader aparece sobre el borde de este perímetro y avanza
+# hacia el objetivo, atravesando el tablero interno.
+# ============================================================
+perimetro_x = [-20, 20]
+perimetro_y = [-20, 20]
+
+# Verificar que el perímetro contenga al tablero interno
+if not (perimetro_x[0] <= range_x[0] and range_x[1] <= perimetro_x[1]
+        and perimetro_y[0] <= range_y[0] and range_y[1] <= perimetro_y[1]):
+    raise ValueError(
+        f"El perímetro exterior x={perimetro_x}, y={perimetro_y} debe contener "
+        f"al tablero interno x={range_x}, y={range_y}"
+    )
+
+# True  -> los drones defensores no pueden salir del tablero interno
+# False -> los drones defensores pueden moverse por todo el perímetro exterior
+drones_limitados_al_tablero = True
 
 # ============================================================
 # CARPETA DE RESULTADOS (común para todas las corridas)
@@ -71,7 +91,9 @@ if not (range_x[0] <= pos_obj_leader_x <= range_x[1]
     )
 
 objetivo_leader = np.array([pos_obj_leader_x, pos_obj_leader_y])
-modo_inicio     = "tablero"              # "tablero" o "perimetro"
+# "perimetro" -> aparece en un punto aleatorio del borde del perímetro exterior
+# "tablero"   -> aparece en un punto aleatorio dentro del tablero interno
+modo_inicio     = "perimetro"
 paso_leader     = 0.08                   # avance del leader por iteración
 radio_objetivo  = 0.5                    # radio de defensa fallida
 
@@ -95,9 +117,10 @@ trj_leader = np.zeros((num_iterations, 3))
 # ============================================================
 # REGISTRO DE COLISIONES CON EL LEADER
 # ============================================================
-radio_colision  = 0.05      # distancia de contacto dron-leader (configurable)
+radio_colision  = 0.1      # distancia de contacto dron-leader (configurable)
 hubo_colision   = False     # variable global: True si algún dron tocó al leader
 eventos_colision = []       # lista de (iteración, número de dron)
+dist_min_propios = np.inf   # menor distancia observada entre dos drones propios
 
 # ============================================================
 # INICIALIZACIÓN DE POSICIONES DE LOS DRONES
@@ -175,7 +198,10 @@ velocities = np.random.rand(num_boids, 2) - 0.5
 # ============================================================
 # INICIALIZACIÓN DEL LEADER
 # ============================================================
-leader = posicion_inicial_leader(range_x, range_y, modo_inicio)
+if modo_inicio == "perimetro":
+    leader = posicion_inicial_leader(perimetro_x, perimetro_y, "perimetro")
+else:
+    leader = posicion_inicial_leader(range_x, range_y, "tablero")
 defensa_fallida = False
 
 # ============================================================
@@ -183,6 +209,10 @@ defensa_fallida = False
 # ============================================================
 cohesion_factor             = 0.02
 separation_factor           = 0.1
+
+# Radios de la regla de separación entre drones defensores
+radio_separacion            = 1.0    # distancia a la que un dron empieza a alejarse de otro (antes 0.5)
+distancia_minima_drones     = 0.1    # por debajo de esta distancia se aplica un empuje aleatorio
 alignment_factor            = 0.01
 obstacle_avoidance_factor   = 0.1
 
@@ -228,6 +258,12 @@ for t in range(num_iterations):
             hubo_colision = True
             eventos_colision.append((t, k + 1))
 
+    # Distancia mínima entre drones propios (seguridad entre agentes)
+    for a in range(num_boids):
+        for b in range(a + 1, num_boids):
+            dist_min_propios = min(dist_min_propios,
+                                   np.linalg.norm(positions[a, :] - positions[b, :]))
+
     trj_leader[t, 0:2] = leader
     trj_leader[t, 2]   = t
     n_iter = t + 1          # iteraciones efectivamente simuladas
@@ -254,11 +290,11 @@ for t in range(num_iterations):
                 dist = np.linalg.norm( distance_vector)
 
                 # Evitar división por cero
-                if dist < 0.1:
+                if dist < distancia_minima_drones:
                     separation += np.random.rand(2)
                     
                 # Zona de separación
-                elif dist < 0.5:
+                elif dist < radio_separacion:
                     separation -= ( positions[j, :] - positions[i, :]) / (dist ** 2)
 
         # Factor de separación
@@ -301,22 +337,13 @@ for t in range(num_iterations):
         positions[i, :] = ( positions[i, :] + velocities[i, :])
 
         # ====================================================
-        # LIMITAR POSICIÓN EN X
+        # LIMITAR POSICIÓN (tablero interno o perímetro exterior)
         # ====================================================
-        positions[i, 0] = np.clip(
-            positions[i, 0],
-            range_x[0],
-            range_x[1]
-        )
+        lim_x = range_x if drones_limitados_al_tablero else perimetro_x
+        lim_y = range_y if drones_limitados_al_tablero else perimetro_y
 
-        # ====================================================
-        # LIMITAR POSICIÓN EN Y
-        # ====================================================
-        positions[i, 1] = np.clip(
-            positions[i, 1],
-            range_y[0],
-            range_y[1]
-        )
+        positions[i, 0] = np.clip(positions[i, 0], lim_x[0], lim_x[1])
+        positions[i, 1] = np.clip(positions[i, 1], lim_y[0], lim_y[1])
 
     # ========================================================
     # ACTUALIZACIÓN DEL LEADER
@@ -384,8 +411,15 @@ for t in range(num_iterations):
     # --------------------------------------------------------
     # CONFIGURACIÓN DE EJES
     # --------------------------------------------------------
-    plt.xlim(range_x)
-    plt.ylim(range_y)
+    # Tablero interno (zona de los defensores)
+    plt.plot(
+        [range_x[0], range_x[1], range_x[1], range_x[0], range_x[0]],
+        [range_y[0], range_y[0], range_y[1], range_y[1], range_y[0]],
+        "k--", linewidth=1.2, label="Tablero interno"
+    )
+    plt.xlim(perimetro_x)
+    plt.ylim(perimetro_y)
+    plt.gca().set_aspect("equal")
 
     # --------------------------------------------------------
     # GRID
@@ -488,11 +522,17 @@ np.savetxt(ruta("colisiones.csv"),
 with open(ruta("resumen.txt"), "w", encoding="utf-8") as f:
     f.write(f"Corrida: {id_corrida}\n")
     f.write(f"Iteraciones simuladas: {n_iter} de {num_iterations}\n")
-    f.write(f"Tablero: range_x = {range_x}, range_y = {range_y}\n")
+    f.write(f"Tablero interno: range_x = {range_x}, range_y = {range_y}\n")
+    f.write(f"Perímetro exterior: perimetro_x = {perimetro_x}, perimetro_y = {perimetro_y}\n")
+    f.write(f"Modo de inicio del leader: {modo_inicio}\n")
+    f.write(f"Drones limitados al tablero interno: {drones_limitados_al_tablero}\n")
     f.write(f"Objetivo del leader: ({pos_obj_leader_x}, {pos_obj_leader_y})\n")
     f.write(f"Posición inicial del leader: ({trj_leader[0, 0]:.4f}, {trj_leader[0, 1]:.4f})\n")
     f.write(f"Modo de posiciones de los drones: {modo_posiciones}\n")
     f.write(f"Radio de colisión: {radio_colision}\n")
+    f.write(f"Radio de separación entre drones: {radio_separacion}\n")
+    f.write(f"Distancia mínima entre drones: {distancia_minima_drones}\n")
+    f.write(f"Distancia mínima observada entre drones propios: {dist_min_propios:.4f}\n")
     f.write(f"Leader alcanzó el objetivo: {'sí, iteración ' + str(t_objetivo) if t_objetivo is not None else 'no'}\n")
     f.write(f"Registros de contacto: {len(eventos_colision)}\n")
     if eventos_colision:
