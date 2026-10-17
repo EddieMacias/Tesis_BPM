@@ -1,3 +1,4 @@
+%% 
 clc
 
 num_defeders = 8;
@@ -41,30 +42,31 @@ trajectory05 = zeros(num_iterations,3);
 trajectory06 = zeros(num_iterations,3);
 trajectory07 = zeros(num_iterations,3);
 trajectory08 = zeros(num_iterations,3);
-trajectory08 = zeros(num_iterations,3);
+trajectory09 = zeros(num_iterations,3);
 
 velocity_D = [0, 0];
 velocities = rand(num_defeders, 2) - 0.5;
 
 % Conectar a CoppeliaSim
-sim = remApi('remoteApi');
-sim.simxFinish(-1);
-clientID = sim.simxStart('127.0.0.1',19999,true,true,5000,5);
+sim=remApi('remoteApi'); % using the prototype file (remoteApiProto.m)
+sim.simxFinish(-1); % just in case, close all opened connections
+clientID=sim.simxStart('127.0.0.1',19999,true,true,5000,5);
 
 % Verificar la conexión
 if (clientID > -1)
     disp('Conectado a CoppeliaSim');
     
     % Obtener el handle del target del cuadricóptero
-    [res1, target_handle1]   = sim.simxGetObjectHandle(clientID,'Quadcopter_target',sim.simx_opmode_blocking);
-    [res2, target_handle2]   = sim.simxGetObjectHandle(clientID,'Quadcopter_target#0',sim.simx_opmode_blocking);
-    [res3, target_handle3]   = sim.simxGetObjectHandle(clientID,'Quadcopter_target#1',sim.simx_opmode_blocking);
-    [res4, target_handle4]   = sim.simxGetObjectHandle(clientID,'Quadcopter_target#2',sim.simx_opmode_blocking);
-    [res5, target_handle5]   = sim.simxGetObjectHandle(clientID,'Quadcopter_target#3',sim.simx_opmode_blocking);
-    [res6, target_handle6]   = sim.simxGetObjectHandle(clientID,'Quadcopter_target#4',sim.simx_opmode_blocking);
-    [res7, target_handle7]   = sim.simxGetObjectHandle(clientID,'Quadcopter_target#5',sim.simx_opmode_blocking);
-    [res8, target_handle8]   = sim.simxGetObjectHandle(clientID,'Quadcopter_target#6',sim.simx_opmode_blocking);
-    [res9, target_handle9]   = sim.simxGetObjectHandle(clientID,'Quadcopter_target#7',sim.simx_opmode_blocking);
+    [res1, target_handle1] = sim.simxGetObjectHandle (clientID, '/Quadcopter[0]',sim.simx_opmode_blocking);
+    [res2, target_handle2] = sim.simxGetObjectHandle (clientID, '/Quadcopter[1]',sim.simx_opmode_blocking);
+    [res3, target_handle3] = sim.simxGetObjectHandle (clientID, '/Quadcopter[2]',sim.simx_opmode_blocking);
+    [res4, target_handle4] = sim.simxGetObjectHandle (clientID, '/Quadcopter[3]',sim.simx_opmode_blocking);
+    [res5, target_handle5] = sim.simxGetObjectHandle (clientID, '/Quadcopter[4]',sim.simx_opmode_blocking);
+    [res6, target_handle6] = sim.simxGetObjectHandle (clientID, '/Quadcopter[5]',sim.simx_opmode_blocking);
+    [res7, target_handle7] = sim.simxGetObjectHandle (clientID, '/Quadcopter[6]',sim.simx_opmode_blocking);
+    [res8, target_handle8] = sim.simxGetObjectHandle (clientID, '/Quadcopter[7]',sim.simx_opmode_blocking);
+    [res9, target_handle9] = sim.simxGetObjectHandle (clientID, '/Quadcopter[8]',sim.simx_opmode_blocking);
+
 
     if (res1 == sim.simx_return_ok && ...
         res2 == sim.simx_return_ok && ...
@@ -72,9 +74,11 @@ if (clientID > -1)
         res4 == sim.simx_return_ok && ...
         res5 == sim.simx_return_ok && ...
         res6 == sim.simx_return_ok && ...
+        res6 == sim.simx_return_ok && ...
         res7 == sim.simx_return_ok && ...
         res8 == sim.simx_return_ok && ...
-        res9 == sim.simx_return_ok )
+        res9 == sim.simx_return_ok)
+
         disp('Handle del target obtenido correctamente');
 
        for t = 1:num_iterations
@@ -84,9 +88,6 @@ if (clientID > -1)
            if dist > 1e-9
                Enemy = Enemy + d / dist * min(enemy_Vel, dist);
            end
-            trajectory01 (t,:) = [Enemy(1,:), boidAlt];
-            target_pos1 = [Enemy(1,1), Enemy(1,2), boidAlt];
-            [res1]  = sim.simxSetObjectPosition(clientID, target_handle1,  -1, target_pos1, sim.simx_opmode_blocking);
 
             for i = 1:num_defeders
                 % Regla de cohesion enjambre defensor
@@ -130,11 +131,36 @@ if (clientID > -1)
                     velocities(i,:) = velocities(i,:) * max_speed / speed;
                 end
 
+
+
                  % Actualizar posición defensores 
                 defenders(i,:) = defenders(i,:) + velocities(i,:);
 
+
+                target_pos1 = [Enemy(1,1), Enemy(1,2), boidAlt];
+                target_pos2 = [defenders(1,1), defenders(1,2), boidAlt];
+                target_pos3 = [defenders(2,1), defenders(2,2), boidAlt];
+                target_pos4 = [defenders(3,1), defenders(3,2), boidAlt];
+                target_pos5 = [defenders(4,1), defenders(4,2), boidAlt];
+                target_pos6 = [defenders(5,1), defenders(5,2), boidAlt];
+                target_pos7 = [defenders(6,1), defenders(6,2), boidAlt];
+                target_pos8 = [defenders(7,1), defenders(7,2), boidAlt];
+                target_pos9 = [defenders(8,1), defenders(8,2), boidAlt];
+
+
+                [res1]  = sim.simxSetObjectPosition(clientID, target_handle1,  -1, target_pos1, sim.simx_opmode_oneshot_wait);
+                [res2]  = sim.simxSetObjectPosition(clientID, target_handle2,  -1, target_pos2, sim.simx_opmode_oneshot_wait);
+                [res3]  = sim.simxSetObjectPosition(clientID, target_handle3,  -1, target_pos3, sim.simx_opmode_oneshot_wait);
+                [res4]  = sim.simxSetObjectPosition(clientID, target_handle4,  -1, target_pos4, sim.simx_opmode_oneshot_wait);
+                [res5]  = sim.simxSetObjectPosition(clientID, target_handle5,  -1, target_pos5, sim.simx_opmode_oneshot_wait);
+                [res6]  = sim.simxSetObjectPosition(clientID, target_handle6,  -1, target_pos6, sim.simx_opmode_oneshot_wait);
+                [res7]  = sim.simxSetObjectPosition(clientID, target_handle7,  -1, target_pos7, sim.simx_opmode_oneshot_wait);
+                [res8]  = sim.simxSetObjectPosition(clientID, target_handle8,  -1, target_pos8, sim.simx_opmode_oneshot_wait);
+                [res9]  = sim.simxSetObjectPosition(clientID, target_handle9,  -1, target_pos9, sim.simx_opmode_oneshot_wait);
+
+
                 trajectory01(t,:) = [Enemy(1,:),    boidAlt];
-                trajectory02(t,:)= [defenders(1,:),boidAlt];
+                trajectory02(t,:) = [defenders(1,:),boidAlt];
                 trajectory03(t,:) = [defenders(2,:),boidAlt];
                 trajectory04(t,:) = [defenders(3,:),boidAlt];
                 trajectory05(t,:) = [defenders(4,:),boidAlt];
@@ -146,8 +172,18 @@ if (clientID > -1)
             end
 
 
-            if (res1 == sim.simx_return_ok)
-                disp('Posición del target establecida correctamente');
+            if (res1 == sim.simx_return_ok && ...
+                res2 == sim.simx_return_ok && ...
+                res3 == sim.simx_return_ok && ...
+                res4 == sim.simx_return_ok && ...
+                res5 == sim.simx_return_ok && ...
+                res6 == sim.simx_return_ok && ...
+                res6 == sim.simx_return_ok && ...
+                res7 == sim.simx_return_ok && ...
+                res8 == sim.simx_return_ok && ...
+                res9 == sim.simx_return_ok)
+
+                disp('Posición del target establecida correctamente --');
             else
                 disp('Error al establecer la posición del target');
             end
