@@ -1,21 +1,19 @@
 %% 
 clc
-
 num_defeders = 8;
 
 range_x                     = [-10, 10];
 range_y                     = [-10, 10];
 boidAlt                     = 4;
-velocities                  = rand(num_defeders, 2) - 0.5;
-num_iterations              = 300;
+num_iterations              = 200;
 cohesion_factor             = 0.02;
 separation_factor           = 0.05;
 alignment_factor            = 0.01;
-obstacle_avoidance_factor   = 0.3;
-shepherds_avoidance_factor  = 0.4;
-shepherd_approach_distance  = 0.5;
-separation_radius           = 0.1;
-obstacle_radius             = 0.3;
+%obstacle_avoidance_factor   = 0.3;
+%shepherds_avoidance_factor  = 0.4;
+%shepherd_approach_distance  = 0.5;
+%separation_radius           = 0.1;
+%obstacle_radius             = 0.3;
 Enemy_avoidance_factor      = 0.01;
 Enemy_separation_distance   = 0.01;  
 
@@ -57,15 +55,15 @@ if (clientID > -1)
     disp('Conectado a CoppeliaSim');
     
     % Obtener el handle del target del cuadricóptero
-    [res1, target_handle1] = sim.simxGetObjectHandle (clientID, '/Quadcopter[0]',sim.simx_opmode_blocking);
-    [res2, target_handle2] = sim.simxGetObjectHandle (clientID, '/Quadcopter[1]',sim.simx_opmode_blocking);
-    [res3, target_handle3] = sim.simxGetObjectHandle (clientID, '/Quadcopter[2]',sim.simx_opmode_blocking);
-    [res4, target_handle4] = sim.simxGetObjectHandle (clientID, '/Quadcopter[3]',sim.simx_opmode_blocking);
-    [res5, target_handle5] = sim.simxGetObjectHandle (clientID, '/Quadcopter[4]',sim.simx_opmode_blocking);
-    [res6, target_handle6] = sim.simxGetObjectHandle (clientID, '/Quadcopter[5]',sim.simx_opmode_blocking);
-    [res7, target_handle7] = sim.simxGetObjectHandle (clientID, '/Quadcopter[6]',sim.simx_opmode_blocking);
-    [res8, target_handle8] = sim.simxGetObjectHandle (clientID, '/Quadcopter[7]',sim.simx_opmode_blocking);
-    [res9, target_handle9] = sim.simxGetObjectHandle (clientID, '/Quadcopter[8]',sim.simx_opmode_blocking);
+    [res1, target_handle1] = sim.simxGetObjectHandle (clientID, ':/target[0]',sim.simx_opmode_blocking);
+    [res2, target_handle2] = sim.simxGetObjectHandle (clientID, ':/target[1]',sim.simx_opmode_blocking);
+    [res3, target_handle3] = sim.simxGetObjectHandle (clientID, ':/target[2]',sim.simx_opmode_blocking);
+    [res4, target_handle4] = sim.simxGetObjectHandle (clientID, ':/target[3]',sim.simx_opmode_blocking);
+    [res5, target_handle5] = sim.simxGetObjectHandle (clientID, ':/target[4]',sim.simx_opmode_blocking);
+    [res6, target_handle6] = sim.simxGetObjectHandle (clientID, ':/target[5]',sim.simx_opmode_blocking);
+    [res7, target_handle7] = sim.simxGetObjectHandle (clientID, ':/target[6]',sim.simx_opmode_blocking);
+    [res8, target_handle8] = sim.simxGetObjectHandle (clientID, ':/target[7]',sim.simx_opmode_blocking);
+    [res9, target_handle9] = sim.simxGetObjectHandle (clientID, ':/target[8]',sim.simx_opmode_blocking);
 
 
     if (res1 == sim.simx_return_ok && ...
@@ -148,15 +146,15 @@ if (clientID > -1)
                 target_pos9 = [defenders(8,1), defenders(8,2), boidAlt];
 
 
-                [res1]  = sim.simxSetObjectPosition(clientID, target_handle1,  -1, target_pos1, sim.simx_opmode_oneshot_wait);
-                [res2]  = sim.simxSetObjectPosition(clientID, target_handle2,  -1, target_pos2, sim.simx_opmode_oneshot_wait);
-                [res3]  = sim.simxSetObjectPosition(clientID, target_handle3,  -1, target_pos3, sim.simx_opmode_oneshot_wait);
-                [res4]  = sim.simxSetObjectPosition(clientID, target_handle4,  -1, target_pos4, sim.simx_opmode_oneshot_wait);
-                [res5]  = sim.simxSetObjectPosition(clientID, target_handle5,  -1, target_pos5, sim.simx_opmode_oneshot_wait);
-                [res6]  = sim.simxSetObjectPosition(clientID, target_handle6,  -1, target_pos6, sim.simx_opmode_oneshot_wait);
-                [res7]  = sim.simxSetObjectPosition(clientID, target_handle7,  -1, target_pos7, sim.simx_opmode_oneshot_wait);
-                [res8]  = sim.simxSetObjectPosition(clientID, target_handle8,  -1, target_pos8, sim.simx_opmode_oneshot_wait);
-                [res9]  = sim.simxSetObjectPosition(clientID, target_handle9,  -1, target_pos9, sim.simx_opmode_oneshot_wait);
+                [res1]  = sim.simxSetObjectPosition(clientID, target_handle1,  -1, target_pos1, sim.simx_opmode_continuous);
+                [res2]  = sim.simxSetObjectPosition(clientID, target_handle2,  -1, target_pos2, sim.simx_opmode_continuous);
+                [res3]  = sim.simxSetObjectPosition(clientID, target_handle3,  -1, target_pos3, sim.simx_opmode_continuous);
+                [res4]  = sim.simxSetObjectPosition(clientID, target_handle4,  -1, target_pos4, sim.simx_opmode_continuous);
+                [res5]  = sim.simxSetObjectPosition(clientID, target_handle5,  -1, target_pos5, sim.simx_opmode_continuous);
+                [res6]  = sim.simxSetObjectPosition(clientID, target_handle6,  -1, target_pos6, sim.simx_opmode_continuous);
+                [res7]  = sim.simxSetObjectPosition(clientID, target_handle7,  -1, target_pos7, sim.simx_opmode_continuous);
+                [res8]  = sim.simxSetObjectPosition(clientID, target_handle8,  -1, target_pos8, sim.simx_opmode_continuous);
+                [res9]  = sim.simxSetObjectPosition(clientID, target_handle9,  -1, target_pos9, sim.simx_opmode_continuous);
 
 
                 trajectory01(t,:) = [Enemy(1,:),    boidAlt];
@@ -183,7 +181,8 @@ if (clientID > -1)
                 res8 == sim.simx_return_ok && ...
                 res9 == sim.simx_return_ok)
 
-                disp('Posición del target establecida correctamente --');
+                disp(['Posición del target establecida correctamente -- ', num2str(t)]);
+                pause(1)
             else
                 disp('Error al establecer la posición del target');
             end
@@ -201,3 +200,5 @@ else
 end
     disp('Simulación detenida y conexión cerrada');
 close all;
+
+Datalogger
