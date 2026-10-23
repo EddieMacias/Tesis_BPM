@@ -1,28 +1,14 @@
-%% Animación del dron hostil en línea recta (solo MATLAB)
-clear; clc; close all;
+figure;
 
-% Parámetros
-rangeX        = [-10 10];
-rangeY        = [-10 10];
-posIniLeader  = [-9, 9];     % posición inicial
-objetivo      = [0, 0];      % activo protegido
-pasoLeader    = 0.08;        % avance por iteración
-radioObjetivo = 0.5;         % radio de defensa fallida
-numIter       = 1000;
+plot(trajectory01(:,1), trajectory01(:,2),LineWidth=1,Color="b");
+hold on;
 
-leader = posIniLeader;
-trj    = zeros(numIter, 2);
+plot(realpos01(:,1), realpos01(:,2),LineWidth=1,Color="r");
 
-figure('Color', 'w');
-for t = 1:numIter
-    trj(t, :) = leader;
-
-    % Avance en línea recta hacia el objetivo
-    d    = objetivo - leader;
-    dist = norm(d);
-    if dist > 1e-9
-        leader = leader + d / dist * min(pasoLeader, dist);
-    end
-
-end
-trj = trj(1:t, :);   % trayectoria registrada
+grid on;
+axis equal;
+xlabel('X (m)');
+ylabel('Y (m)');
+title('Seguimiento de trayectoria - Dron 01');
+legend('Posición comandada', 'Posición real', ...
+    'Location', 'best');
