@@ -282,8 +282,6 @@ else
     disp('Error al conectar con CoppeliaSim');
 end
     disp('Simulación detenida y conexión cerrada');
+    Datalogger
 close all;
 
-if t>199
-    Datalogger
-end
